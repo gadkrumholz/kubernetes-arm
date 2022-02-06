@@ -5,8 +5,35 @@ metadata:
   name: config
 data:
   config: |
+    peers:
+    - peer-address: 172.16.0.1
+      peer-asn: 64512
+      my-asn: 64512
     address-pools:
     - name: default
-      protocol: layer2
+      protocol: bgp
       addresses:
-      - 192.168.1.16/28
+      - 172.16.0.192/26
+      avoid-buggy-ips: true
+---
+# Allow metallb-speaker to talk to upstream BGP peer(s)
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: metallb-speaker
+  namespace: metallb-system
+  labels:
+    app.kubernetes.io/name: metallb
+    app.kubernetes.io/component: speaker
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: metallb
+      app.kubernetes.io/component: speaker
+  egress:
+  - ports:
+    - port: 179  # BGP Port
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 172.16.0.1/32  # edgerouter

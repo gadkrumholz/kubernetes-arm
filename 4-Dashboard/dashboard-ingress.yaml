@@ -1,16 +1,40 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+  labels:
+    app: kubernetes-dashboard
+spec:
+  selector:
+    k8s-app: kubernetes-dashboard
+  externalTrafficPolicy: Local
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: web
+    - protocol: TCP
+      port: 443
+      targetPort: 8443
+      name: https
+  type: LoadBalancer
+---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: kubernetes-dashboard
-  namespace: kube-system
+  namespace: kubernetes-dashboard
   annotations:
     traefik.frontend.rule.type: PathPrefix
 spec:
   rules:
-  - host: dashboard.internal.carlosedp.com
+  - host: dashboard.internal.gad.cloud
     http:
       paths:
       - path: /
         backend:
           serviceName: kubernetes-dashboard
           servicePort: 80
+

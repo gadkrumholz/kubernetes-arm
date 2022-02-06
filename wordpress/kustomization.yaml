@@ -1,0 +1,8 @@
+secretGenerator:
+- name: mysql-pass
+  literals:
+  - password=superSecretPassword1234!@#$
+resources:
+  - mysql-statefulset.yaml
+  - wordpress-deployment.yaml
+  - wordpress-cron.yaml

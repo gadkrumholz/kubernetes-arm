@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-fast
+  namespace: default
+  labels:
+    app: ubuntu-fast
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ubuntu-fast
+  template:
+    metadata:
+      labels:
+        app: ubuntu-fast
+    spec:
+      containers:
+      - command:
+           - sh
+           - -c
+           - 'date >> /mnt/openebs-csi-fast/date.txt; hostname >> /mnt/openebs-csi-fast/hostname.txt; sync; sleep 5; sync; tail -f /dev/null;'
+        image: ubuntu
+        imagePullPolicy: Always
+        name: ubuntu-fast
+        volumeMounts:
+        - mountPath: /mnt/openebs-csi-fast
+          name: demo-vol
+      volumes:
+      - name: demo-vol
+        persistentVolumeClaim:
+          claimName: nfs-pvc-fast
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nfs-pvc-fast
+spec:
+  storageClassName: openebs-rwx-fast
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

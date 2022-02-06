@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-slow
+  namespace: default
+  labels:
+    app: ubuntu-slow
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ubuntu-slow
+  template:
+    metadata:
+      labels:
+        app: ubuntu-slow
+    spec:
+      containers:
+      - command:
+           - sh
+           - -c
+           - 'date >> /mnt/openebs-csi-slow/date.txt; hostname >> /mnt/openebs-csi-slow/hostname.txt; sync; sleep 5; sync; tail -f /dev/null;'
+        image: ubuntu
+        imagePullPolicy: Always
+        name: ubuntu-slow
+        volumeMounts:
+        - mountPath: /mnt/openebs-csi-slow
+          name: demo-vol
+      volumes:
+      - name: demo-vol
+        persistentVolumeClaim:
+          claimName: nfs-pvc-slow
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nfs-pvc-slow
+spec:
+  storageClassName: openebs-rwx-slow
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
