@@ -1,0 +1,8 @@
+secretGenerator:
+- name: mariadb-secret
+  literals:
+  - mariadb-root-password=c3VwZXJTZWNyZXRQYXNzd29yZDEyMzQhQCMk # echo -n 'superSecretPassword1234!@#$' | base64
+resources:
+  - mariadb-statefulset.yaml
+  - mediawiki-deployment.yaml
+  - ingress.yaml

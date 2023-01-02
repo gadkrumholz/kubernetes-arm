@@ -1,0 +1,24 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: longhorn-fast
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: "Delete"
+parameters:
+  numberOfReplicas: "3"
+  staleReplicaTimeout: "2880" # 48 hours in minutes
+  fromBackup: ""
+  fsType: "ext4"
+  diskSelector: "fast"
+  nodeSelector: "r1,r2"
+#  recurringJobSelector: '[
+#   {
+#     "name":"snap",
+#     "isGroup":true,
+#   },
+#   {
+#     "name":"backup",
+#     "isGroup":false,
+#   }
+#  ]'

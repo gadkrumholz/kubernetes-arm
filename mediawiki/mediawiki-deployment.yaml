@@ -1,26 +1,26 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: wordpress
+  name: mediawiki
   labels:
-    app: wordpress
+    app: mediawiki
 spec:
   ports:
     - port: 80
-      name: wordpress
+      name: mediawiki
     - port: 443
-      name: wordpress-ssl
+      name: mediawiki-ssl
   selector:
-    app: wordpress
+    app: mediawiki
     tier: frontend
   type: LoadBalancer
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: wp-pv-claim
+  name: mw-pv-claim
   labels:
-    app: wordpress
+    app: mediawiki
 spec:
   accessModes:
     - ReadWriteMany
@@ -29,23 +29,37 @@ spec:
     requests:
       storage: 20Gi
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mw-pv-config
+  labels:
+    app: mediawiki
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn-slow
+  resources:
+    requests:
+      storage: 50Mi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wordpress
+  name: mediawiki
   labels:
-    app: wordpress
+    app: mediawiki
 spec:
   selector:
     matchLabels:
-      app: wordpress
+      app: mediawiki
       tier: frontend
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: wordpress
+        app: mediawiki
         tier: frontend
     spec:
       topologySpreadConstraints:
@@ -54,20 +68,10 @@ spec:
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
           matchLabels:
-            app: wordpress
+            app: mediawiki
       containers:
-      - image: arm64v8/wordpress:5.8.1-apache
-        name: wordpress
-        env:
-        - name: WORDPRESS_DB_HOST
-          value: mysql-0.mysql
-        - name: WORDPRESS_DB_USER
-          value: wordpress
-        - name: WORDPRESS_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-pass
-              key: password
+      - image: arm64v8/mediawiki:lts
+        name: mediawiki
         livenessProbe:
           exec:
             command: ["ls", "/var/www/html"]
@@ -83,14 +87,18 @@ spec:
           timeoutSeconds: 5
         ports:
         - containerPort: 80
-          name: wordpress
+          name: mediawiki
         - containerPort: 443
-          name: wordpress-ssl
+          name: mediawiki-ssl
         volumeMounts:
-        - name: wordpress-persistent-storage
-          mountPath: /var/www/html
+        - name: mediawiki-persistent-storage
+          mountPath: /var/www/html/images
+        - name: mediawiki-config
+          mountPath: /var/www/html/config
       volumes:
-      - name: wordpress-persistent-storage
+      - name: mediawiki-persistent-storage
         persistentVolumeClaim:
-          claimName: wp-pv-claim
-
+          claimName: mw-pv-claim
+      - name: mediawiki-config
+        persistentVolumeClaim:
+          claimName: mw-pv-config

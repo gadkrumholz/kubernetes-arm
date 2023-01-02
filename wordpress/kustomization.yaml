@@ -6,3 +6,4 @@ resources:
   - mysql-statefulset.yaml
   - wordpress-deployment.yaml
   - wordpress-cron.yaml
+  - ingress.yaml
